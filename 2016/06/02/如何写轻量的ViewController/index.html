@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <meta charset="utf-8">
+    
+    <title>如何写轻量的ViewController | KevinWu&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="前言
+View controllers 通常是 iOS 项目中最大的文件，因为它们包含了许多不必要的代码。所以 View controllers 中的代码几乎总是复用率较低，并且随着业务的不断增长，ViewController也将越来越庞大，所以是时候谈谈该如何为ViewController瘦身了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何写轻量的ViewController">
+<meta property="og:url" content="http://yoursite.com/2016/06/02/如何写轻量的ViewController/index.html">
+<meta property="og:site_name" content="KevinWu's blog">
+<meta property="og:description" content="前言
+View controllers 通常是 iOS 项目中最大的文件，因为它们包含了许多不必要的代码。所以 View controllers 中的代码几乎总是复用率较低，并且随着业务的不断增长，ViewController也将越来越庞大，所以是时候谈谈该如何为ViewController瘦身了。">
+<meta property="og:updated_time" content="2016-07-07T14:09:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何写轻量的ViewController">
+<meta name="twitter:description" content="前言
+View controllers 通常是 iOS 项目中最大的文件，因为它们包含了许多不必要的代码。所以 View controllers 中的代码几乎总是复用率较低，并且随着业务的不断增长，ViewController也将越来越庞大，所以是时候谈谈该如何为ViewController瘦身了。">
+    
+
+    
+
+    
+
+    <link rel="stylesheet" href="/vendor/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/vendor/open-sans/styles.css">
+    <link rel="stylesheet" href="/vendor/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/vendor/jquery/2.1.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/vendor/fancybox/jquery.fancybox.css">
+    
+    
+    
+    
+
+</head>
+<body>
+    <div id="container">
+        <header id="header">
+    <div id="header-main" class="header-inner">
+        <div class="outer">
+            <a href="/" id="logo">
+                <i class="logo"></i>
+                <span class="site-title">KevinWu&#39;s blog</span>
+            </a>
+            <nav id="main-nav">
+                
+                    <a class="main-nav-link" href="/.">Home</a>
+                
+                    <a class="main-nav-link" href="/archives">Archives</a>
+                
+                    <a class="main-nav-link" href="/categories">Categories</a>
+                
+                    <a class="main-nav-link" href="/tags">Tags</a>
+                
+                    <a class="main-nav-link" href="/about">About</a>
+                
+            </nav>
+            
+                
+                <nav id="sub-nav">
+                    <div class="profile" id="profile-nav">
+                        <a id="profile-anchor" href="javascript:;">
+                            <img class="avatar" src="/css/images/avatar.png" />
+                            <i class="fa fa-caret-down"></i>
+                        </a>
+                    </div>
+                </nav>
+            
+            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="想要查找什么..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+        </div>
+    </div>
+    <div id="main-nav-mobile" class="header-sub header-inner">
+        <table class="menu outer">
+            <tr>
+                
+                    <td><a class="main-nav-link" href="/.">Home</a></td>
+                
+                    <td><a class="main-nav-link" href="/archives">Archives</a></td>
+                
+                    <td><a class="main-nav-link" href="/categories">Categories</a></td>
+                
+                    <td><a class="main-nav-link" href="/tags">Tags</a></td>
+                
+                    <td><a class="main-nav-link" href="/about">About</a></td>
+                
+                <td>
+                    
+    <div class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</header>
+
+        <div class="outer">
+            
+                
+
+<aside id="profile">
+    <div class="inner profile-inner">
+        <div class="base-info profile-block">
+            <img id="avatar" src="/css/images/avatar.png" />
+            <h2 id="name">KevinWu</h2>
+            <h3 id="title">iOS Developer</h3>
+            <span id="location"><i class="fa fa-map-marker"></i>Suzhou, China</span>
+            <a id="follow" target="_blank" href="https://github.com/devwcq/">关注我</a>
+        </div>
+        <div class="article-info profile-block">
+            <div class="article-info-block">
+                2
+                <span>文章</span>
+            </div>
+            <div class="article-info-block">
+                1
+                <span>标签</span>
+            </div>
+        </div>
+        
+        <div class="profile-block social-links">
+            <table>
+                <tr>
+                    
+                    
+                    <td>
+                        <a href="http://github.com/devwcq/" target="_blank" title="github" class=tooltip>
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="http://weibo.com/2421296107/profile?topnav=1&wvr=6&is_all=1" target="_blank" title="weibo" class=tooltip>
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                    </td>
+                    
+                    <td>
+                        <a href="/" target="_blank" title="rss" class=tooltip>
+                            <i class="fa fa-rss"></i>
+                        </a>
+                    </td>
+                    
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</aside>
+
+            
+            <section id="main"><article id="post-如何写轻量的ViewController" class="article article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+        
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+            如何写轻量的ViewController
+        </h1>
+    
+
+                <div class="article-meta">
+                    
+    <div class="article-date">
+        <i class="fa fa-calendar"></i>
+        <a href="/2016/06/02/如何写轻量的ViewController/">
+            <time datetime="2016-06-02T13:50:33.000Z" itemprop="datePublished">2016-06-02</time>
+        </a>
+    </div>
+
+
+                    
+    <div class="article-category">
+    	<i class="fa fa-folder"></i>
+        <a class="article-category-link" href="/categories/iOS/">iOS</a>
+    </div>
+
+                    
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/lighter/">lighter</a>
+    </div>
+
+                </div>
+            </header>
+        
+        <div class="article-entry" itemprop="articleBody">
+        
+            
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ol>
+<li>View controllers 通常是 iOS 项目中最大的文件，因为它们包含了许多不必要的代码。所以 View controllers 中的代码几乎总是复用率较低，并且随着业务的不断增长，ViewController也将越来越庞大，所以是时候谈谈该如何为ViewController瘦身了。</li>
+</ol>
+<a id="more"></a>
+<ol>
+<li>理想的ViewController职责<ul>
+<li>在初始化时，构造相应的 View 和 Model。</li>
+<li>监听 Model 层的事件，将 Model 层的数据传递到 View 层。</li>
+<li>监听 View 层的事件，并且将 View 层的事件转发到 Model 层。</li>
+</ul>
+</li>
+<li>之所以说ViewController里面有许多不必要的代码原因有如下几点:<ul>
+<li>根本没有创建页面的model类，而是把所有的代码都放在ViewController里面，例如把数据的请求直接放在ViewController里面。</li>
+<li>业务层抽离不够彻底或者说找不到合适的方法去把业务逻辑与ViewController分开。</li>
+<li>代码复用性差，其实做到复用性高很难。</li>
+<li>页面业务逻辑确实太多，因为即使处理业务逻辑都放在其他类里面，你也需要开放接口放到ViewController里面，过多的接口也必然会加重ViewController。</li>
+</ul>
+</li>
+</ol>
+<h2 id="如何对ViewController瘦身？"><a href="#如何对ViewController瘦身？" class="headerlink" title="如何对ViewController瘦身？"></a>如何对ViewController瘦身？</h2><h3 id="把TableView的Data-Source分离出来"><a href="#把TableView的Data-Source分离出来" class="headerlink" title="把TableView的Data Source分离出来"></a>把TableView的Data Source分离出来</h3><p> 把 UITableViewDataSource 的代码提取出来放到一个单独的类中，是为 view controller 瘦身的强大技术之一。如果你能多做几次，你就能总结出一些模式，并且创建出可复用的类。</p>
+<p> 举个例子：有个 PhotosViewController 类，它有以下几个方法：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"> <span class="meta"># pragma mark DataSource</span></div><div class="line"></div><div class="line">- (<span class="built_in">NSInteger</span>)tableView:(<span class="built_in">UITableView</span>*)tableView</div><div class="line"> numberOfRowsInSection:(<span class="built_in">NSInteger</span>)section &#123;</div><div class="line">    <span class="keyword">return</span> photos.count;</div><div class="line">&#125;</div><div class="line"></div><div class="line">- (<span class="built_in">UITableViewCell</span>*)tableView:(<span class="built_in">UITableView</span>*)tableView</div><div class="line">        cellForRowAtIndexPath:(<span class="built_in">NSIndexPath</span>*)indexPath &#123;</div><div class="line">    PhotoCell* cell = [tableView dequeueReusableCellWithIdentifier:PhotoCellIdentifier</div><div class="line">                                                      forIndexPath:indexPath];</div><div class="line">    Photo* photo = photos[indexPath.row];</div><div class="line">    cell.label.text = photo.name;</div><div class="line">    <span class="keyword">return</span> cell;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这些代码基本都是围绕数组做一些事情，更针对地说，是围绕 view controller 所管理的 photos 数组做一些事情。我们可以尝试把数组相关的代码移到单独的类中。我们使用一个 block 来设置 cell，主要代码如下：<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"> <span class="class"><span class="keyword">@implementation</span> <span class="title">ArrayDataSource</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">id</span>)itemAtIndexPath:(<span class="built_in">NSIndexPath</span>*)indexPath &#123;</div><div class="line">    <span class="keyword">return</span> items[(<span class="built_in">NSUInteger</span>)indexPath.row];</div><div class="line">&#125;</div><div class="line"></div><div class="line">- (<span class="built_in">NSInteger</span>)tableView:(<span class="built_in">UITableView</span>*)tableView</div><div class="line"> numberOfRowsInSection:(<span class="built_in">NSInteger</span>)section &#123;</div><div class="line">    <span class="keyword">return</span> items.count;</div><div class="line">&#125;</div><div class="line"></div><div class="line">- (<span class="built_in">UITableViewCell</span>*)tableView:(<span class="built_in">UITableView</span>*)tableView</div><div class="line">        cellForRowAtIndexPath:(<span class="built_in">NSIndexPath</span>*)indexPath &#123;</div><div class="line">    <span class="keyword">id</span> cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier</div><div class="line">                                              forIndexPath:indexPath];</div><div class="line">    <span class="keyword">id</span> item = [<span class="keyword">self</span> itemAtIndexPath:indexPath];</div><div class="line">    configureCellBlock(cell,item);</div><div class="line">    <span class="keyword">return</span> cell;</div><div class="line">&#125;</div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure></p>
+<p>现在，你可以把 view controller 中的这 3 个方法去掉了，取而代之，你可以创建一个 ArrayDataSource 类的实例作为 table view 的 data source。<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">void</span> (^configureCell)(PhotoCell*, Photo*) = ^(PhotoCell* cell, Photo* photo) &#123;</div><div class="line">   cell.label.text = photo.name;</div><div class="line">&#125;;</div><div class="line">photosArrayDataSource = [[ArrayDataSource alloc] initWithItems:photos</div><div class="line">                                                cellIdentifier:PhotoCellIdentifier</div><div class="line">                                            configureCellBlock:configureCell];</div><div class="line"><span class="keyword">self</span>.tableView.dataSource = photosArrayDataSource;</div></pre></td></tr></table></figure></p>
+<p>我们可以看出DataSource类里面要穿的参数就是一个数组，一个ReuseIdentifier以及一个block，里面不涉及其它类，所以可以完全可以复用于其它ViewController。 </p>
+<h3 id="构造ViewModel"><a href="#构造ViewModel" class="headerlink" title="构造ViewModel"></a>构造ViewModel</h3><p>我们看一个简单的 Person Model 以及相应的 View Controller：<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Person</span> : <span class="title">NSObject</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">instancetype</span>)initwithSalutation:(<span class="built_in">NSString</span> *)salutation firstName:(<span class="built_in">NSString</span> *)firstName lastName:(<span class="built_in">NSString</span> *)lastName birthdate:(<span class="built_in">NSDate</span> *)birthdate;</div><div class="line"></div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">NSString</span> *salutation;</div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">NSString</span> *firstName;</div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">NSString</span> *lastName;</div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">NSDate</span> *birthdate;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure></p>
+<p>假设我们有一个 PersonViewController ，在 viewDidLoad 里，只需要基于它的 model 属性设置一些 Label 即可。如下所示：<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>)viewDidLoad &#123;</div><div class="line">    [<span class="keyword">super</span> viewDidLoad];</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>.model.salutation.length &gt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.nameLabel.text = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%@ %@ %@"</span>, <span class="keyword">self</span>.model.salutation, <span class="keyword">self</span>.model.firstName, <span class="keyword">self</span>.model.lastName];</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">self</span>.nameLabel.text = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%@ %@"</span>, <span class="keyword">self</span>.model.firstName, <span class="keyword">self</span>.model.lastName];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="built_in">NSDateFormatter</span> *dateFormatter = [[<span class="built_in">NSDateFormatter</span> alloc] init];</div><div class="line">    [dateFormatter setDateFormat:<span class="string">@"EEEE MMMM d, yyyy"</span>];</div><div class="line">    <span class="keyword">self</span>.birthdateLabel.text = [dateFormatter stringFromDate:model.birthdate];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>现在看看我们构造一个View Model来增强它从而达到瘦身ViewController的目的。<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">PersonViewModel</span> : <span class="title">NSObject</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">instancetype</span>)initWithPerson:(Person *)person;</div><div class="line"></div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) Person *person;</div><div class="line"></div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">NSString</span> *nameText;</div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) <span class="built_in">NSString</span> *birthdateText;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure></p>
+<p>ViewModel的实现大概如下：<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">PersonViewModel</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">instancetype</span>)initWithPerson:(Person *)person &#123;</div><div class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</div><div class="line">    <span class="keyword">if</span> (!<span class="keyword">self</span>) <span class="keyword">return</span> <span class="literal">nil</span>;</div><div class="line"></div><div class="line">    _person = person;</div><div class="line">    <span class="keyword">if</span> (person.salutation.length &gt; <span class="number">0</span>) &#123;</div><div class="line">        _nameText = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%@ %@ %@"</span>, <span class="keyword">self</span>.person.salutation, <span class="keyword">self</span>.person.firstName, <span class="keyword">self</span>.person.lastName];</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        _nameText = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"%@ %@"</span>, <span class="keyword">self</span>.person.firstName, <span class="keyword">self</span>.person.lastName];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="built_in">NSDateFormatter</span> *dateFormatter = [[<span class="built_in">NSDateFormatter</span> alloc] init];</div><div class="line">    [dateFormatter setDateFormat:<span class="string">@"EEEE MMMM d, yyyy"</span>];</div><div class="line">    _birthdateText = [dateFormatter stringFromDate:person.birthdate];</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure></p>
+<h3 id="将业务逻辑移到Model中"><a href="#将业务逻辑移到Model中" class="headerlink" title="将业务逻辑移到Model中"></a>将业务逻辑移到Model中</h3><p>假如下面是 viewController中的一块代码，用来查找一个用户的目前的优先事项的列表<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>)loadPriorities &#123;</div><div class="line">    <span class="built_in">NSDate</span>* now = [<span class="built_in">NSDate</span> date];</div><div class="line">    <span class="built_in">NSString</span>* formatString = <span class="string">@"startDate = %@"</span>;</div><div class="line">    <span class="built_in">NSPredicate</span>* predicate = [<span class="built_in">NSPredicate</span> predicateWithFormat:formatString, now, now];</div><div class="line">    <span class="built_in">NSSet</span>* priorities = [<span class="keyword">self</span>.user.priorities filteredSetUsingPredicate:predicate];</div><div class="line">    <span class="keyword">self</span>.priorities = [priorities allObjects];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>那如果我们能把这些代码移动到 User 类或者其category 中，那将会变得更加清晰，处理之后，在 View Controller.m 中看起来就是这样：<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>)loadPriorities &#123;</div><div class="line">    <span class="keyword">self</span>.priorities = [user currentPriorities];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在user类中实现如下：<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">- (<span class="built_in">NSArray</span>*)currentPriorities &#123;</div><div class="line">    <span class="built_in">NSDate</span>* now = [<span class="built_in">NSDate</span> date];</div><div class="line">    <span class="built_in">NSString</span>* formatString = <span class="string">@"startDate = %@"</span>;</div><div class="line">    <span class="built_in">NSPredicate</span>* predicate = [<span class="built_in">NSPredicate</span> predicateWithFormat:formatString, now, now];</div><div class="line">    <span class="keyword">return</span> [[<span class="keyword">self</span>.priorities filteredSetUsingPredicate:predicate] allObjects];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="把网络请求逻辑移到Model层"><a href="#把网络请求逻辑移到Model层" class="headerlink" title="把网络请求逻辑移到Model层"></a>把网络请求逻辑移到Model层</h3><p>下面这段代码是我遇到一个页面网络请求数据的方法，因为业务逻辑和中间层不能完美的原因，导致客户端不得不做很多数据处理的逻辑，所以导致这个网络请求方法大的惨不忍睹，如果将此方法直接放在viewController里面，那就更惨不忍睹了。。。<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>)fetchJourneyListWithSuccessBlock:(JASuccessBlock)successBlock</div><div class="line">                               failBlock:(JAFailBlock)failBlock</div><div class="line">&#123;</div><div class="line">    __<span class="keyword">weak</span> <span class="keyword">typeof</span>(<span class="keyword">self</span>) weakSelf = <span class="keyword">self</span>;</div><div class="line">    <span class="keyword">self</span>.requestList.memberId = JA_MEMBERID;</div><div class="line">    [<span class="keyword">self</span>.requestList startWithSuccessBlock:^(ResponseGetScheduleOrderList *response, <span class="built_in">NSDictionary</span> *options) &#123;</div><div class="line">        weakSelf.canDelete = [response.isOpenDel isEqualToString:<span class="string">@"1"</span>];</div><div class="line">        weakSelf.isShowAddBtn = [response.isOpenEdit isEqualToString:<span class="string">@"1"</span>];</div><div class="line">        weakSelf.isEnterPlanJourney = [response.versionType isEqualToString:<span class="string">@"0"</span>];</div><div class="line">        <span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, <span class="number">0</span>), ^&#123;</div><div class="line">            <span class="built_in">NSMutableArray</span>&lt;__kindof <span class="built_in">NSArray</span> *&gt; *arrayJourneyListNew = [<span class="built_in">NSMutableArray</span> array];</div><div class="line">            <span class="built_in">NSMutableArray</span>&lt;JADateData *&gt; *arrayDateListNew = [<span class="built_in">NSMutableArray</span> array];</div><div class="line">            <span class="built_in">NSArray</span>&lt;JAJourneyData *&gt; *arrayJourneyList = response.orderList;</div><div class="line">            <span class="built_in">NSArray</span>&lt;JADateData *&gt; *arrayJourneyDate = response.journeyDateList;</div><div class="line">            <span class="built_in">NSMutableDictionary</span> *dictDate = [<span class="built_in">NSMutableDictionary</span> dictionary];</div><div class="line">    </div><div class="line">            [arrayJourneyDate enumerateObjectsUsingBlock:^(JADateData * _Nonnull item, <span class="built_in">NSUInteger</span> idx, <span class="built_in">BOOL</span> * _Nonnull stop) &#123;</div><div class="line">                <span class="keyword">if</span> (item.journeyDate.length) &#123;</div><div class="line">                    dictDate[item.journeyDate] = @(idx);</div><div class="line">                    <span class="keyword">if</span> (!item.journeyDateDisplay || item.journeyDateDisplay.length == <span class="number">0</span>) &#123;</div><div class="line">                        <span class="built_in">NSDate</span> *date = [TCDateFormatter stringToDateCustom:item.journeyDate formatString:def_YearMonthDay_DF];</div><div class="line">                        <span class="keyword">if</span> (date) &#123;</div><div class="line">                            item.journeyDateDisplay = [TCDateFormatter dateToStringCustom:date formatString:def_MonthDayWeekTwoChn_DF];</div><div class="line">                        &#125;</div><div class="line">                    &#125;</div><div class="line">                    [arrayDateListNew addObject:item];</div><div class="line">                    [arrayJourneyListNew addObject:[<span class="built_in">NSMutableArray</span> array]];</div><div class="line">                &#125;</div><div class="line">            &#125;];</div><div class="line">            <span class="built_in">NSMutableArray</span>&lt;JAFlightData *&gt; *arrayFlight = [<span class="built_in">NSMutableArray</span>&lt;JAFlightData *&gt; array];</div><div class="line">            [arrayJourneyList enumerateObjectsUsingBlock:^(JAJourneyData * _Nonnull item, <span class="built_in">NSUInteger</span> idx, <span class="built_in">BOOL</span> * _Nonnull stop) &#123;</div><div class="line">                <span class="keyword">if</span> (item.journeyDate.length &gt; <span class="number">0</span>) &#123;</div><div class="line">                    item.qrNumberUrl = response.qrNumberUrl;</div><div class="line">                    <span class="built_in">NSNumber</span> *nIndex = dictDate[item.journeyDate];</div><div class="line">                    <span class="keyword">if</span> (!nIndex) <span class="keyword">return</span>;</div><div class="line">                    <span class="built_in">NSUInteger</span> index = nIndex.integerValue;</div><div class="line">                    <span class="keyword">if</span> (index &gt;= arrayJourneyListNew.count) <span class="keyword">return</span>;</div><div class="line">                    [item configureWithIndex:idx];</div><div class="line">                    <span class="built_in">NSMutableArray</span> *array = arrayJourneyListNew[index];</div><div class="line">                    [array addObject:item];</div><div class="line">                &#125;</div><div class="line">                </div><div class="line">                <span class="keyword">if</span> ([item.projectTag isEqualToString:TCTProjectTagFlightInternal] &amp;&amp; item.specialData) &#123;</div><div class="line">                    [arrayFlight addObject:[item.specialData <span class="keyword">copy</span>]];</div><div class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span> ([item.projectTag isEqualToString:kRecordJourneyProjectTag] || [item.projectTag isEqualToString:kPlanJourneyProjectTag]) &#123;</div><div class="line">                    iCustomProjectNumber ++;</div><div class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span>([item.projectTag isEqualToString:kClassicJourneyProjectTag])&#123;</div><div class="line">                    iClassicProjectNumber ++;</div><div class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span> ([item.createSource isEqualToString:<span class="string">@"1"</span>] &amp;&amp; item.poiType.length &gt; <span class="number">0</span>) &#123;</div><div class="line">                    iPoiProjectNumber ++;</div><div class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span> ([item.createSource isEqualToString:<span class="string">@"2"</span>]) &#123;</div><div class="line">                    iShareProjectNumber ++;</div><div class="line">                &#125;</div><div class="line">            &#125;];</div><div class="line">            <span class="built_in">dispatch_async</span>(dispatch_get_main_queue(), ^&#123;</div><div class="line">                weakSelf.journeyList = arrayJourneyListNew;</div><div class="line">                weakSelf.dateList = arrayDateListNew;</div><div class="line">                weakSelf.specialData = arrayFlight;</div><div class="line">                [weakSelf refreshJourneyListWithFlightDataDictionary];</div><div class="line">                !successBlock ?: successBlock(weakSelf.dateList.count == <span class="number">0</span>);</div><div class="line">                [weakSelf refreshAllCache];</div><div class="line">            &#125;);</div><div class="line">        &#125;);</div><div class="line">    &#125; failBlock:^(TCTNetworkError *error, <span class="built_in">NSDictionary</span> *options) &#123;</div><div class="line">        ResponseGetScheduleOrderList *response = error.rspObject;</div><div class="line">        weakSelf.isShowAddBtn = [response.isOpenEdit isEqualToString:<span class="string">@"1"</span>];</div><div class="line">        weakSelf.isEnterPlanJourney = [response.versionType isEqualToString:<span class="string">@"0"</span>];</div><div class="line">        <span class="built_in">BOOL</span> isNoNetwork = (error.code == TCTErrorNetworkCallbackUnReachable ||</div><div class="line">                            error.code == TCTErrorNetworkCallbackFailWithServer ||</div><div class="line">                             error.code == TCTErrorNetworkResponseValidFail);</div><div class="line">        <span class="keyword">if</span> (!isNoNetwork) &#123;</div><div class="line">            [weakSelf removeAllCache];</div><div class="line">            weakSelf.journeyList = <span class="literal">nil</span>;</div><div class="line">            weakSelf.dateList = <span class="literal">nil</span>;</div><div class="line">        &#125;</div><div class="line">        !failBlock ?: failBlock(error, options);</div><div class="line">    &#125;];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="把View代码移到View层"><a href="#把View代码移到View层" class="headerlink" title="把View代码移到View层"></a>把View代码移到View层</h3><p>不应该在 view controller 中构建复杂的 view 层次结构。你可以使用 Interface Builder 或者把 views 封装到一个 UIView 子类当中。例如，如果你要创建一个选择日期的控件，把它放到一个名为 DatePickerView 的类中会比把所有的事情都在 view controller 中做好好得多。再一次，这样增加了可复用性并保持了简单。不过稍微麻烦一些的是，你需要把这些控件的事件回调先接管，再都一一暴露回 Controller。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>通过代码的抽取，我们可以将原本的 MVC 设计模式中的 ViewController 进一步拆分，构造出网络请求层、ViewModel层，View层等其它类，来配合 Controller 工作，从而使 Controller 更加简单，我们的 App 更容易维护。</p>
+<p>另外，不知道大家注意到没，其实 Controller 层是非常难于测试的，如果我们能够将 Controller 瘦身，就可以更方便地写 Unit Test 来测试各种与界面的无关的逻辑。虽然说移动端自动化测试框架都不太成熟，但是将 Controller 的代码抽取出来，是有助于我们后续做测试工作。</p>
+
+        
+        </div>
+        <footer class="article-footer">
+            <div class="share-container">
+
+
+
+</div>
+
+    <a data-url="http://yoursite.com/2016/06/02/如何写轻量的ViewController/" data-id="ciqce454f0001xz29kzi4nloz" class="article-share-link"><i class="fa fa-share"></i>分享到</a>
+<script>
+    (function ($) {
+        // Prevent duplicate binding
+        if (typeof(__SHARE_BUTTON_BINDED__) === 'undefined' || !__SHARE_BUTTON_BINDED__) {
+            __SHARE_BUTTON_BINDED__ = true;
+        } else {
+            return;
+        }
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="fa fa-twitter article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="fa fa-facebook article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="fa fa-pinterest article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="fa fa-google article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+            
+    
+        <a href="http://yoursite.com/2016/06/02/如何写轻量的ViewController/#comments" class="article-comment-link ds-thread-count" data-thread-key="http://yoursite.com/2016/06/02/如何写轻量的ViewController/">评论</a>
+    
+
+        </footer>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2016/07/07/hello-world/" id="article-nav-newer" class="article-nav-link-wrap">
+            <strong class="article-nav-caption">上一篇</strong>
+            <div class="article-nav-title">
+                
+                    Hello World
+                
+            </div>
+        </a>
+    
+    
+</nav>
+
+
+    
+</article>
+
+
+    
+    <section id="comments">
+    
+        
+    <div class="ds-thread" data-thread-key="2016/06/02/如何写轻量的ViewController/" data-title="如何写轻量的ViewController" data-url="http://yoursite.com/2016/06/02/如何写轻量的ViewController/"></div>
+    <style>
+        #ds-thread #ds-reset .ds-textarea-wrapper {
+            background: none;
+        }
+        #ds-reset .ds-avatar img {
+            box-shadow: none;
+        }
+        #ds-reset .ds-gradient-bg {
+            background: #f7f7f7;
+        }
+        #ds-thread #ds-reset li.ds-tab a {
+            border-radius: 3px;
+        }
+        #ds-thread #ds-reset .ds-post-button {
+            color: white;
+            border: none;
+            box-shadow: none;
+            background: #d32;
+            text-shadow: none;
+            font-weight: normal;
+            font-family: 'Microsoft Yahei';
+        }
+        #ds-thread #ds-reset .ds-post-button:hover {
+            color: white;
+            background: #DE594C;
+        }
+        #ds-thread #ds-reset .ds-post-button:active {
+            background: #d32;
+        }
+        #ds-smilies-tooltip ul.ds-smilies-tabs li a.ds-current {
+            color: white;
+            background: #d32;
+            box-shadow: none;
+            text-shadow: none;
+            font-weight: normal;
+        }
+    </style>
+
+    
+    </section>
+
+</section>
+            
+                <aside id="sidebar">
+   
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">最新文章</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2016/07/07/hello-world/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"></p>
+                            <p class="item-title"><a href="/2016/07/07/hello-world/" class="title">Hello World</a></p>
+                            <p class="item-date"><time datetime="2016-07-07T12:52:07.000Z" itemprop="datePublished">2016-07-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2016/06/02/如何写轻量的ViewController/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/iOS/">iOS</a></p>
+                            <p class="item-title"><a href="/2016/06/02/如何写轻量的ViewController/" class="title">如何写轻量的ViewController</a></p>
+                            <p class="item-date"><time datetime="2016-06-02T13:50:33.000Z" itemprop="datePublished">2016-06-02</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">分类</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/iOS/">iOS</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">归档</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">七月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">标签</h3>
+        <div class="widget">
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/lighter/">lighter</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap">
+        <h3 class="widget-title">标签云</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/lighter/" style="font-size: 10px;">lighter</a>
+        </div>
+    </div>
+
+    
+        
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">链接</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="http://hexo.io">Hexo</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+    
+    <div id="toTop" class="fa fa-angle-up"></div>
+</aside>
+            
+        </div>
+        <footer id="footer">
+    <div class="outer">
+        <div id="footer-info" class="inner">
+            &copy; 2016 Kevin Wu<br>
+            Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>. Theme by <a href="http://github.com/ppoffice">PPOffice</a>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script type="text/javascript">
+    var duoshuoQuery = {short_name:'devwcq'};
+    (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+    </script>
+
+
+
+    
+        <script src="/vendor/fancybox/jquery.fancybox.pack.js"></script>
+    
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>
